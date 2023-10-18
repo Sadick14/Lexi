@@ -60,6 +60,11 @@ if __name__ == "__main__":
             print('restarting system.....')
             subprocess.call(["shutdown", "/r"])
 
+        
+        elif 'search' in query:
+            speak('opening a webbrowser for your search please wait to be connected')
+            webbrowser.open(query)
+
         else:
             speak("Sorry, I didn't understand that. Can you please repeat?")
 
