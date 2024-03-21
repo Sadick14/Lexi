@@ -1,70 +1,150 @@
+import subprocess
 import speech_recognition as sr
 import pyttsx3
 import datetime
 import time
 import os
 import webbrowser
+import smtplib
 
 
 engine = pyttsx3.init()
-# voices = engine.getProperty('voices')
-# engine.setProperty('voice', voices[1].id)
+engine.setProperty('rate', 200) 
+engine.setProperty( 'depth', 10)
+engine.setProperty('voiceselect', 'english+f2')
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[2].id)
 
 def listen():
-    recognizer = sr.Recognizer()
+	
+	r = sr.Recognizer()
+	
+	with sr.Microphone() as source:
+		
+		print("Listening...")
+		r.pause_threshold = 1
+		audio = r.listen(source)
 
-    with sr.Microphone() as source:
-        print("Listening...")
-        recognizer.adjust_for_ambient_noise(source, duration=1)
-        audio = recognizer.listen(source)
+	try:
+		print("Recognizing...")
+		query = r.recognize_google(audio, language ='en-in')
+		print(f"User said: {query}\n")
 
-    try:
-        print("Recognizing...")
-        query = recognizer.recognize_google(audio)
-        print(f"You said: {query}")
-        return query
-    except sr.UnknownValueError:
-        print("Sorry, I couldn't understand that.")
-        return ""
-    except sr.RequestError as e:
-        print(f"Could not request results from Google Speech Recognition service; {e}")
-        return ""
+	except Exception as e:
+		print(e)
+		print("Unable to Recognize your voice.")
+		return "None"
+	
+	return query
+
+def sendEmail(to, content):
+	server = smtplib.SMTP('smtp.gmail.com', 587)
+	server.ehlo()
+	server.starttls()
+	
+	# Enable low security in gmail
+	address=""
+	password =""
+	server.login(address, password)
+	server.sendmail(address, to, content)
+	server.close()
+
+def web_search(query):
+  search_url = f"https://www.google.com/search?q={query}"
+  return search_url
+
 
 def speak(audio):
     engine.say(audio)
     engine.runAndWait()
 
 if __name__ == "__main__":
-    speak("Hello! Sadick, I am your voice assistant. How can I help you today?")
+    
+    speak(f"Hello...!, 'LEXI' here! , your voice assistant. Enter 'help' in query to know how i can assist you.")
 
     while True:
-        query = listen().lower()
+
+        speak("Enter your query")
+        query = input("Enter your query: ") 
+        # listen().lower() 
+        
 
         if "exit" in query:
             speak("Goodbye! Have a great day.")
             break
 
         # Add more conditions based on what actions you want your assistant to perform
-        elif "your_name" in query:
-            speak("I am a voice assistant created with Python.")
+        elif "your name" in query:
+            speak("You can call me Lexi")
 
-        elif 'the time' in query:
-            strTime = datetime.datetime.now().strftime("% H:% M:% S")
-            speak(f"Sir, the time is {strTime}") 
+        elif "who are you" in query:
+            speak('I am Lexi, a voice assistance whose aim is to help you')
+
+        elif 'help' in query:
+            speak(
+                'My assistance include: opening any inbuilt tool, starting services like bluetooth, making simple web searches, date and timesystem shutdown and restart. Thats all for now.'
+            )
+
+
+        elif "bluetooth ON" in query:
+            os.system('systemctl start bluetooth')
+            speak("Your bluetooth has started ")
+
+        elif "play music" in query:
+            speak('opening your music player')
+            os.system("rhythmbox")
+            
+
+        elif 'date' in query:
+             date_with_month = datetime.datetime.now().strftime("%B %dth, %Y")  # Example: March 13, 2024
+             print(f"The date is {date_with_month}.")
+             speak(f"The date is {date_with_month}.")
+        
+        elif 'time' in query:
+             time_now = datetime.datetime.now().strftime("%H:%M:%S")
+             print(f"the time is {time_now}")
+             speak(f"The time is {time_now}.")
 
         elif 'shutdown' in query:
             speak("Hold On a Sec ! Your system is on its way to shut down")
-            subprocess.call('shutdown / p /f')
+            os.system('sudo shutdown now')
 
         elif "restart" in query:
-            print('restarting system.....')
-            subprocess.call(["shutdown", "/r"])
+            speak('restarting system.....')
+            os.system("sudo reboot now")
+
+        elif "clear log" in query:
+            speak("clearing your log files")
+            os.system('sudo rm -rf /kali/var/log')
+
+        elif 'file' in query:
+            speak("File explorer will open shortly. Please wait...")
+            os.system('nautilus')
+            
+        elif 'email' in query:
+            try:
+                speak("What should I say?")
+                content = input("compose your email: ")#listen()
+                to = input("Receiver email address:")
+                sendEmail(to, content)
+                speak("Email has been sent !")
+            except Exception as e:
+                print(e)
+                speak("I am not able to send this email")
+
+        elif 'search' in query:
+            search_url = web_search(query)  # Or use google_search(query) if using Google Custom Search Engine
+            if search_url:
+                speak('Opening a web browser for your search...')
+                webbrowser.open(search_url)
+            else:
+                speak('Search failed. Please try again.')
+
+        elif query:
+            speak(f"Opening {query}...")
+            os.system(query)
 
         
-        elif 'search' in query:
-            speak('opening a webbrowser for your search please wait to be connected')
-            webbrowser.open(query)
-
         else:
             speak("Sorry, I didn't understand that. Can you please repeat?")
 
