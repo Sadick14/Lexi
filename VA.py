@@ -6,10 +6,11 @@ import time
 import os
 import webbrowser
 import smtplib
+import google.generativeai as genai
 
 
 engine = pyttsx3.init()
-engine.setProperty('rate', 200) 
+engine.setProperty('rate', 150) 
 engine.setProperty( 'depth', 10)
 engine.setProperty('voiceselect', 'english+f2')
 voices = engine.getProperty('voices')
@@ -43,8 +44,8 @@ def sendEmail(to, content):
 	server.starttls()
 	
 	# Enable low security in gmail
-	address=""
-	password =""
+	address= input("Enter your email address")
+	password =input("Enter your email password")
 	server.login(address, password)
 	server.sendmail(address, to, content)
 	server.close()
@@ -53,6 +54,19 @@ def web_search(query):
   search_url = f"https://www.google.com/search?q={query}"
   return search_url
 
+def generate_code(prompt):
+
+  # Configure API key (replace with your actual key)
+  genai.configure(api_key="AIzaSyDIMekkyv2GtTbHZPDBkmE5eikl9tuy9wE")
+
+  # Initialize the generative model
+  model = genai.GenerativeModel("gemini-pro")
+
+  # Generate content based on the prompt
+  response = model.generate_content(prompt)
+  generated_code = response.text
+
+  return generated_code
 
 def speak(audio):
     engine.say(audio)
@@ -65,8 +79,9 @@ if __name__ == "__main__":
     while True:
 
         speak("Enter your query")
-        query = input("Enter your query: ") 
-        # listen().lower() 
+        query = input("Enter your query: ")
+        #listen().lower() 
+        
         
 
         if "exit" in query:
@@ -86,9 +101,9 @@ if __name__ == "__main__":
             )
 
 
-        elif "bluetooth ON" in query:
+        elif "bluetooth" in query:
             os.system('systemctl start bluetooth')
-            speak("Your bluetooth has started ")
+            speak("Bluetooth is enabled")
 
         elif "play music" in query:
             speak('opening your music player')
@@ -96,7 +111,7 @@ if __name__ == "__main__":
             
 
         elif 'date' in query:
-             date_with_month = datetime.datetime.now().strftime("%B %dth, %Y")  # Example: March 13, 2024
+             date_with_month = datetime.datetime.now().strftime("%B %d, %Y")  # Example: March 13, 2024
              print(f"The date is {date_with_month}.")
              speak(f"The date is {date_with_month}.")
         
@@ -118,13 +133,13 @@ if __name__ == "__main__":
             os.system('sudo rm -rf /kali/var/log')
 
         elif 'file' in query:
-            speak("File explorer will open shortly. Please wait...")
+            speak("File manager will open shortly. Please wait...")
             os.system('nautilus')
             
         elif 'email' in query:
             try:
                 speak("What should I say?")
-                content = input("compose your email: ")#listen()
+                content = input("compose your email: ") #listen()
                 to = input("Receiver email address:")
                 sendEmail(to, content)
                 speak("Email has been sent !")
@@ -140,11 +155,21 @@ if __name__ == "__main__":
             else:
                 speak('Search failed. Please try again.')
 
+        elif 'ai' in query:
+            speak("Hello you are with Lexi Chatbot")
+            while True:
+                speak("please enter your prompt")
+                prompt = input("Enter your prompt: ")
+                generated_code = generate_code(prompt)
+        
+                print(f"Prompt: {prompt}")
+                print(f"\nLexi Ai:\n{generated_code}")
+        
         elif query:
             speak(f"Opening {query}...")
             os.system(query)
 
-        
+
         else:
             speak("Sorry, I didn't understand that. Can you please repeat?")
 
