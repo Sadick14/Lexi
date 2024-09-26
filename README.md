@@ -18,7 +18,7 @@ Lexi is a versatile voice assistant designed to provide a seamless and intuitive
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/lexi.git
+   git clone https://github.com/Sadick14/Lexi.git
    cd lexi
    
 2. **Install Dependencies**
